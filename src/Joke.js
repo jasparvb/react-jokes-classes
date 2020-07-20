@@ -10,11 +10,11 @@ class Joke extends Component {
   }
 
   downVote() {
-    this.props.vote(this.props.id - 1);
+    this.props.vote(this.props.id, -1);
   }
 
   upVote() {
-    this.setState(this.props.id + 1);
+    this.props.vote(this.props.id, 1);
   }
 
   render() {

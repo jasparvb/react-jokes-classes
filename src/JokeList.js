@@ -2,12 +2,13 @@ import React, { Component } from "react";
 import axios from "axios";
 import Joke from "./Joke";
 import "./JokeList.css";
-import { render } from "@testing-library/react";
 
 class JokeList extends Component {
   constructor(props) {
-    this.super(props);
+    super(props);
     this.state = {jokes: []};
+    this.generateNewJokes = this.generateNewJokes.bind(this);
+    this.vote = this.vote.bind(this);
   }
 
   static defaultProps = {
@@ -15,14 +16,19 @@ class JokeList extends Component {
   };
 
   componentDidMount() {
-    if (this.state.jokes.length === 0) getJokes();
+    if (this.state.jokes.length < this.props.numJokesToGet) this.getJokes();
+  }
+
+  componentDidUpdate() {
+    if (this.state.jokes.length < this.props.numJokesToGet) this.getJokes();
   }
   /* get jokes if there are no jokes */
 
   async getJokes() {
-    let jokes = this.state.jokes;
-    let seenJokes = new Set(jokes.map(j => j.id));
     try {
+      let jokes = this.state.jokes;
+      let seenJokes = new Set(jokes.map(j => j.id));
+
       while (jokes.length < this.props.numJokesToGet) {
         let res = await axios.get("https://icanhazdadjoke.com", {
           headers: { Accept: "application/json" }
@@ -47,8 +53,7 @@ class JokeList extends Component {
   /* empty joke list and then call getJokes */
 
   generateNewJokes() {
-    this.setState({});
-    this.getJokes();
+    this.setState({jokes: []});
   }
 
   /* change vote for this id by delta (+1 or -1) */
@@ -63,23 +68,20 @@ class JokeList extends Component {
 
   /* render: either loading spinner or list of sorted jokes. */
 
-  if (this.state.jokes.length) 
-    let sortedJokes = [...jokes].sort((a, b) => b.votes - a.votes);
-    render(){
-      return (
-        <div className="JokeList">
-          <button className="JokeList-getmore" onClick={generateNewJokes}>
-            Get New Jokes
-          </button>
-    
-          {sortedJokes.map(j => (
-            <Joke text={j.joke} key={j.id} id={j.id} votes={j.votes} vote={vote} />
-          ))}
-        </div>
-      );
-    }
-
-  return null;
+  render(){
+    let sortedJokes = [...this.state.jokes].sort((a, b) => b.votes - a.votes);
+    return (
+      <div className="JokeList">
+        <button className="JokeList-getmore" onClick={this.generateNewJokes}>
+          Get New Jokes
+        </button>
+  
+        {sortedJokes.map(j => (
+          <Joke text={j.joke} key={j.id} id={j.id} votes={j.votes} vote={this.vote} />
+        ))}
+      </div>
+    );
+  }
 
 }
 
