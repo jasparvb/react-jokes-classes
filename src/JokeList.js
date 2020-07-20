@@ -20,9 +20,10 @@ class JokeList extends Component {
   /* get jokes if there are no jokes */
 
   async getJokes() {
-    let seenJokes = new Set(this.state.jokes.map(j => j.id));
+    let jokes = this.state.jokes;
+    let seenJokes = new Set(jokes.map(j => j.id));
     try {
-      while (this.state.jokes.length < this.props.numJokesToGet) {
+      while (jokes.length < this.props.numJokesToGet) {
         let res = await axios.get("https://icanhazdadjoke.com", {
           headers: { Accept: "application/json" }
         });
@@ -30,7 +31,7 @@ class JokeList extends Component {
 
         if (!seenJokes.has(jokeObj.id)) {
           seenJokes.add(jokeObj.id);
-          this.state.jokes.push({ ...jokeObj, votes: 0 });
+          jokes.push({ ...jokeObj, votes: 0 });
         } else {
           console.error("duplicate found!");
         }
@@ -46,20 +47,23 @@ class JokeList extends Component {
   /* empty joke list and then call getJokes */
 
   generateNewJokes() {
-    setJokes([]);
+    this.setState({});
+    this.getJokes();
   }
 
   /* change vote for this id by delta (+1 or -1) */
 
   vote(id, delta) {
-    setJokes(allJokes =>
-      allJokes.map(j => (j.id === id ? { ...j, votes: j.votes + delta } : j))
-    );
+    this.setState(allJokes => ({
+      jokes: allJokes.jokes.map(j =>
+        j.id === id ? { ...j, votes: j.votes + delta } : j
+      )
+    }));
   }
 
   /* render: either loading spinner or list of sorted jokes. */
 
-  if (jokes.length) {
+  if (this.state.jokes.length) 
     let sortedJokes = [...jokes].sort((a, b) => b.votes - a.votes);
     render(){
       return (
@@ -74,7 +78,6 @@ class JokeList extends Component {
         </div>
       );
     }
-  }
 
   return null;
 
